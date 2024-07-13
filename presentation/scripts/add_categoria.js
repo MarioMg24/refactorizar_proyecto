@@ -12,7 +12,7 @@ async function addCategory(event) {
     formData.append('imagenCategoria', imagenCategoria);
 
     try {
-        const response = await fetch('http://refactorizar_proyect.test/businessLogic/swCategoria.php', {
+        const response = await fetch('http://refactorizar_proyecto.test/businessLogic/swCategoria.php', {
             method: 'POST',
             body: formData
         });

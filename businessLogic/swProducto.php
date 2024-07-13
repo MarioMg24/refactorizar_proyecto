@@ -2,11 +2,12 @@
 include '../dataAccess/conexion/Conexion.php';
 include '../dataAccess/dataAccessLogic/Producto.php';
 
-// Read Producto
+// Read Producto por ID de categoría
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+    $categoriaId = intval($_GET['categoriaId']); // Obtener el ID de la categoría del parámetro GET
     $objConexion = new ConexionDB();
     $objProducto = new Producto($objConexion);
-    $array = $objProducto->readProducto();
+    $array = $objProducto->getProductosByCategoria($categoriaId); // Obtener productos por categoría
     echo json_encode($array);
     exit;
 }
@@ -28,21 +29,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nombreProducto = $_POST['nombreProducto'];
     $descripcionProducto = $_POST['descripcionProducto'];
     $precioProducto = $_POST['precioProducto'];
-    $imagenProducto = $_POST['imagenProducto'];
     $cantidadDisponible = $_POST['cantidadDisponible'];
     $categoriaId = $_POST['categoriaId'];
     $fechaVencimiento = $_POST['fechaVencimiento'];
-    $objConexion = new ConexionDB();
-    $objProducto = new Producto($objConexion);
-    $objProducto->setNombreProducto($nombreProducto);
-    $objProducto->setDescripcionProducto($descripcionProducto);
-    $objProducto->setPrecioProducto($precioProducto);
-    $objProducto->setImagenProducto($imagenProducto);
-    $objProducto->setCantidadDisponible($cantidadDisponible);
-    $objProducto->setCategoriaId($categoriaId);
-    $objProducto->setFechaVencimiento($fechaVencimiento);
-    $objProducto->addProducto();
-    $response = array('success' => true, 'message' => 'Producto añadido correctamente');
+
+    // Procesar la imagen del producto
+    $imagenProducto = $_FILES['imagenProducto'];
+    $uploadDirectory = '../presentation/pages/productos/img_productos/';
+    $uploadedFile = $uploadDirectory . basename($imagenProducto['name']);
+
+    if (move_uploaded_file($imagenProducto['tmp_name'], $uploadedFile)) {
+        $rutaImagen = './img_productos/' . basename($imagenProducto['name']);
+
+        // Crear objeto de conexión y objeto de producto
+        $objConexion = new ConexionDB();
+        $objProducto = new Producto($objConexion);
+        $objProducto->setNombreProducto($nombreProducto);
+        $objProducto->setDescripcionProducto($descripcionProducto);
+        $objProducto->setPrecioProducto($precioProducto);
+        $objProducto->setImagenProducto($rutaImagen);
+        $objProducto->setCantidadDisponible($cantidadDisponible);
+        $objProducto->setCategoriaId($categoriaId);
+        $objProducto->setFechaVencimiento($fechaVencimiento);
+
+        // Intentar agregar el producto
+        if ($objProducto->addProducto()) {
+            $response = array('success' => true, 'message' => 'Producto añadido correctamente');
+        } else {
+            $response = array('success' => false, 'message' => 'Error al agregar el producto');
+        }
+    } else {
+        $response = array('success' => false, 'message' => 'Error al subir la imagen');
+    }
+
     echo json_encode($response);
     exit;
 }

@@ -1,14 +1,23 @@
 <?php
 include '../dataAccess/conexion/Conexion.php';
 include '../dataAccess/dataAccessLogic/Categoria.php';
+include '../dataAccess/dataAccessLogic/Producto.php';
 
-// Read Categoria
+// Read Categoria(s)
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $objConexion = new ConexionDB();
     $objCategoria = new Categoria($objConexion);
-    $array = $objCategoria->readCategoria();
-    echo json_encode($array);
-    exit;
+
+    if (isset($_GET['id'])) {
+        $idCategoria = intval($_GET['id']);
+        $categoria = $objCategoria->readCategoriaById($idCategoria);
+        echo json_encode($categoria);
+        exit;
+    } else {
+        $array = $objCategoria->readCategoria();
+        echo json_encode($array);
+        exit;
+    }
 }
 
 // Delete Categoria
@@ -16,9 +25,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
     $idCategoria = intval($_GET['id']);
     $objConexion = new ConexionDB();
     $objCategoria = new Categoria($objConexion);
+    $objProducto = new Producto($objConexion);
+
     $objCategoria->setIdCategoria($idCategoria);
-    $objCategoria->deleteCategoria();
-    $response = array('success' => true, 'message' => 'Categoria eliminada correctamente');
+    
+    // Obtener todos los productos asociados a la categoría
+    $productosAsociados = $objProducto->getProductosByCategoria($idCategoria);
+
+    foreach ($productosAsociados as $producto) {
+        $objProducto->setIdProducto($producto['ID_producto']);
+        // Eliminar registros en DetallePedido
+        $objProducto->deleteDetallePedidoByProducto($producto['ID_producto']);
+        // Eliminar registros en ProveedorProducto
+        $objProducto->deleteProveedorProductoByProducto($producto['ID_producto']);
+        // Eliminar el producto
+        $objProducto->deleteProducto();
+    }
+
+    // Eliminar la categoría
+    if ($objCategoria->deleteCategoria()) {
+        $response = array('success' => true, 'message' => 'Categoria y productos asociados eliminados correctamente');
+    } else {
+        $response = array('success' => false, 'message' => 'Error al eliminar la categoría');
+    }
+
     echo json_encode($response);
     exit;
 }

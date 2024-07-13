@@ -33,6 +33,6 @@
     <footer class="bg-blue-800 p-4 text-center text-white">
         <p>Espoch todos los derechos reservados © 2024</p>
     </footer>
-    <script src="../../scripts/add-categoria.js"></script>
+    <script src="../../scripts/add_categoria.js"></script>
 </body>
 </html>
