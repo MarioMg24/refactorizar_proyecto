@@ -2,9 +2,13 @@
 class Usuario {
     private $connectionDB;
     private $idUsuario;
-    private $nombreUsuario;
-    private $email;
-    private $password;
+    private $nombre;
+    private $apellido;
+    private $correo_electronico;
+    private $contraseña;
+    private $telefono;
+    private $direccion;
+    private $perfil;
 
     public function __construct($connectionDB) {
         $this->connectionDB = $connectionDB->conectar();
@@ -18,36 +22,68 @@ class Usuario {
         return $this->idUsuario;
     }
 
-    public function setNombreUsuario($nombreUsuario) {
-        $this->nombreUsuario = $nombreUsuario;
+    public function setNombre($nombre) {
+        $this->nombre = $nombre;
     }
 
-    public function getNombreUsuario() {
-        return $this->nombreUsuario;
+    public function getNombre() {
+        return $this->nombre;
     }
 
-    public function setEmail($email) {
-        $this->email = $email;
+    public function setApellido($apellido) {
+        $this->apellido = $apellido;
     }
 
-    public function getEmail() {
-        return $this->email;
+    public function getApellido() {
+        return $this->apellido;
     }
 
-    public function setPassword($password) {
-        $this->password = $password;
+    public function setCorreoElectronico($correo_electronico) {
+        $this->correo_electronico = $correo_electronico;
     }
 
-    public function getPassword() {
-        return $this->password;
+    public function getCorreoElectronico() {
+        return $this->correo_electronico;
+    }
+
+    public function setContraseña($contraseña) {
+        $this->contraseña = $contraseña;
+    }
+
+    public function getContraseña() {
+        return $this->contraseña;
+    }
+
+    public function setTelefono($telefono) {
+        $this->telefono = $telefono;
+    }
+
+    public function getTelefono() {
+        return $this->telefono;
+    }
+
+    public function setDireccion($direccion) {
+        $this->direccion = $direccion;
+    }
+
+    public function getDireccion() {
+        return $this->direccion;
+    }
+
+    public function setPerfil($perfil) {
+        $this->perfil = $perfil;
+    }
+
+    public function getPerfil() {
+        return $this->perfil;
     }
 
     // Add Usuario
     public function addUsuario(): bool {
         try {
-            $sql = "INSERT INTO Usuario (Nombre_usuario, Email, Password) VALUES (?, ?, ?)";
+            $sql = "INSERT INTO Usuario (Nombre, Apellido, Correo_electronico, Contraseña, Telefono, Direccion, Perfil) VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->connectionDB->prepare($sql);
-            $stmt->execute(array($this->getNombreUsuario(), $this->getEmail(), $this->getPassword()));
+            $stmt->execute(array($this->getNombre(), $this->getApellido(), $this->getCorreoElectronico(), $this->getContraseña(), $this->getTelefono(), $this->getDireccion(), $this->getPerfil()));
             $count = $stmt->rowCount();
             return $count > 0;
         } catch (PDOException $e) {
@@ -88,9 +124,9 @@ class Usuario {
     // Update Usuario
     public function updateUsuario(): bool {
         try {
-            $sql = "UPDATE Usuario SET Nombre_usuario=?, Email=?, Password=? WHERE ID_usuario=?";
+            $sql = "UPDATE Usuario SET Nombre=?, Apellido=?, Correo_electronico=?, Contraseña=?, Telefono=?, Direccion=?, Perfil=? WHERE ID_usuario=?";
             $stmt = $this->connectionDB->prepare($sql);
-            $stmt->execute(array($this->getNombreUsuario(), $this->getEmail(), $this->getPassword(), $this->getIdUsuario()));
+            $stmt->execute(array($this->getNombre(), $this->getApellido(), $this->getCorreoElectronico(), $this->getContraseña(), $this->getTelefono(), $this->getDireccion(), $this->getPerfil(), $this->getIdUsuario()));
             $count = $stmt->rowCount();
             return $count > 0;
         } catch (PDOException $e) {
@@ -98,5 +134,19 @@ class Usuario {
             return false;
         }
     }
+
+    public function loginUsuario($correo_electronico, $contrasena) {
+        try {
+            $sql = "SELECT * FROM Usuario WHERE Correo_electronico = ? AND Contraseña = ?";
+            $stmt = $this->connectionDB->prepare($sql);
+            $stmt->execute(array($correo_electronico, $contrasena));
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $user ? true : false;
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+            return false;
+        }
+    }
+    
 }
 ?>
