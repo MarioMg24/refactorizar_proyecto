@@ -4,12 +4,32 @@ include '../dataAccess/dataAccessLogic/Producto.php';
 
 // Read Producto por ID de categoría
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-    $categoriaId = intval($_GET['categoriaId']); // Obtener el ID de la categoría del parámetro GET
-    $objConexion = new ConexionDB();
-    $objProducto = new Producto($objConexion);
-    $array = $objProducto->getProductosByCategoria($categoriaId); // Obtener productos por categoría
-    echo json_encode($array);
-    exit;
+    if (isset($_GET['getAllProducts'])) {
+        $objConexion = new ConexionDB();
+        $objProducto = new Producto($objConexion);
+        $productos = $objProducto->getAllProducts();
+        echo json_encode($productos);
+        exit;
+    } elseif (isset($_GET['categoriaId']) && isset($_GET['id_producto'])) {
+        $categoriaId = intval($_GET['categoriaId']);
+        $idProducto = intval($_GET['id_producto']);
+
+        $objConexion = new ConexionDB();
+        $objProducto = new Producto($objConexion);
+        $producto = $objProducto->getProductoByIdAndCategoria($idProducto, $categoriaId);
+
+        echo json_encode($producto);
+        exit;
+    } elseif (isset($_GET['categoriaId'])) {
+        $categoriaId = intval($_GET['categoriaId']);
+
+        $objConexion = new ConexionDB();
+        $objProducto = new Producto($objConexion);
+        $array = $objProducto->getProductosByCategoria($categoriaId);
+
+        echo json_encode($array);
+        exit;
+    }
 }
 
 // Delete Producto
@@ -73,10 +93,12 @@ else if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     $nombreProducto = $data['nombreProducto'];
     $descripcionProducto = $data['descripcionProducto'];
     $precioProducto = $data['precioProducto'];
-    $imagenProducto = $data['imagenProducto'];
     $cantidadDisponible = $data['cantidadDisponible'];
     $categoriaId = $data['categoriaId'];
     $fechaVencimiento = $data['fechaVencimiento'];
+    $imagenProducto = $data['imagenProducto']; // Asumiendo que la imagen se envía como una URL o ruta
+
+    // Crear objeto de conexión y objeto de producto
     $objConexion = new ConexionDB();
     $objProducto = new Producto($objConexion);
     $objProducto->setIdProducto($idProducto);
@@ -87,9 +109,13 @@ else if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     $objProducto->setCantidadDisponible($cantidadDisponible);
     $objProducto->setCategoriaId($categoriaId);
     $objProducto->setFechaVencimiento($fechaVencimiento);
-    $objProducto->updateProducto();
-    $response = array('success' => true, 'message' => 'Producto actualizado correctamente');
+
+    if ($objProducto->updateProducto()) {
+        $response = array('success' => true, 'message' => 'Producto actualizado correctamente');
+    } else {
+        $response = array('success' => false, 'message' => 'Error al actualizar el producto');
+    }
+
     echo json_encode($response);
     exit;
 }
-?>

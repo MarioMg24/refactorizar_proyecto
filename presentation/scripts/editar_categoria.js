@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const idCategoria = urlParams.get('id');
+    const idCategoria = urlParams.get('id_categoria');
 
     if (idCategoria) {
         loadCategoria(idCategoria);

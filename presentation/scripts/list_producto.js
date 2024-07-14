@@ -17,7 +17,7 @@ async function loadProductos(categoriaId) {
         }
 
         const productos = await response.json();
-        displayProductos(productos);
+        displayProductos(productos, categoriaId); // Pasar categoriaId como parámetro
     } catch (error) {
         console.error('Error al cargar los productos:', error);
         Swal.fire({
@@ -29,7 +29,7 @@ async function loadProductos(categoriaId) {
     }
 }
 
-function displayProductos(productos) {
+function displayProductos(productos, categoriaId) {
     const productosContainer = document.getElementById('productos-container');
     productosContainer.innerHTML = '';
 
@@ -66,7 +66,7 @@ function displayProductos(productos) {
         editButton.textContent = 'Editar';
         editButton.classList.add('bg-blue-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-blue-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-blue-500', 'mr-2');
         editButton.addEventListener('click', () => {
-            editProducto(producto.ID_producto);
+            editProducto(producto.ID_producto, categoriaId); // Pasar categoriaId al llamar editProducto
         });
 
         const deleteButton = document.createElement('button');
@@ -89,8 +89,8 @@ function displayProductos(productos) {
     });
 }
 
-function editProducto(idProducto) {
-    window.location.href = `editar_producto.php?id=${idProducto}`;
+function editProducto(idProducto, categoriaId) {
+    window.location.href = `editar_producto.php?id_producto=${idProducto}&categoriaId=${categoriaId}`;
 }
 
 function confirmDeleteProducto(idProducto) {

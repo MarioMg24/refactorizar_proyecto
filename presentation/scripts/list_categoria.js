@@ -69,7 +69,7 @@ function displayCategories(categorias) {
 }
 
 function editCategoria(idCategoria) {
-    window.location.href = `editar_categoria.php?id=${idCategoria}`;
+    window.location.href = `editar_categoria.php?id_categoria=${idCategoria}`;
 }
 
 function confirmDeleteCategoria(idCategoria) {

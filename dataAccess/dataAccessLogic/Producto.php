@@ -14,64 +14,66 @@ class Producto {
         $this->connectionDB = $connectionDB->conectar();
     }
 
+    // Setters
     public function setIdProducto($idProducto) {
         $this->idProducto = $idProducto;
-    }
-
-    public function getIdProducto() {
-        return $this->idProducto;
     }
 
     public function setNombreProducto($nombreProducto) {
         $this->nombreProducto = $nombreProducto;
     }
 
-    public function getNombreProducto() {
-        return $this->nombreProducto;
-    }
-
     public function setDescripcionProducto($descripcionProducto) {
         $this->descripcionProducto = $descripcionProducto;
-    }
-
-    public function getDescripcionProducto() {
-        return $this->descripcionProducto;
     }
 
     public function setPrecioProducto($precioProducto) {
         $this->precioProducto = $precioProducto;
     }
 
-    public function getPrecioProducto() {
-        return $this->precioProducto;
-    }
-
     public function setImagenProducto($imagenProducto) {
         $this->imagenProducto = $imagenProducto;
-    }
-
-    public function getImagenProducto() {
-        return $this->imagenProducto;
     }
 
     public function setCantidadDisponible($cantidadDisponible) {
         $this->cantidadDisponible = $cantidadDisponible;
     }
 
-    public function getCantidadDisponible() {
-        return $this->cantidadDisponible;
-    }
-
     public function setCategoriaId($categoriaId) {
         $this->categoriaId = $categoriaId;
     }
 
-    public function getCategoriaId() {
-        return $this->categoriaId;
-    }
-
     public function setFechaVencimiento($fechaVencimiento) {
         $this->fechaVencimiento = $fechaVencimiento;
+    }
+
+    // Getters
+    public function getIdProducto() {
+        return $this->idProducto;
+    }
+
+    public function getNombreProducto() {
+        return $this->nombreProducto;
+    }
+
+    public function getDescripcionProducto() {
+        return $this->descripcionProducto;
+    }
+
+    public function getPrecioProducto() {
+        return $this->precioProducto;
+    }
+
+    public function getImagenProducto() {
+        return $this->imagenProducto;
+    }
+
+    public function getCantidadDisponible() {
+        return $this->cantidadDisponible;
+    }
+
+    public function getCategoriaId() {
+        return $this->categoriaId;
     }
 
     public function getFechaVencimiento() {
@@ -144,6 +146,32 @@ class Producto {
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
             $productos = $stmt->fetchAll();
             return $productos;
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+            return [];
+        }
+    }
+
+    public function getProductoByIdAndCategoria($idProducto, $idCategoria): array {
+        try {
+            $sql = "SELECT * FROM Producto WHERE ID_producto = ? AND ID_categoria = ?";
+            $stmt = $this->connectionDB->prepare($sql);
+            $stmt->execute(array($idProducto, $idCategoria));
+            $producto = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $producto ? $producto : [];
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+            return [];
+        }
+    }
+
+    // Nuevo método para obtener todos los productos
+    public function getAllProducts(): array {
+        try {
+            $sql = "SELECT ID_producto, Nombre_producto FROM Producto";
+            $stmt = $this->connectionDB->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             echo $e->getMessage();
             return [];
