@@ -7,7 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error('No se proporcionó el ID de la categoría');
     }
+
+    // Agregar event listeners para los campos de búsqueda
+    document.getElementById('search-input').addEventListener('input', filterProductos);
+    document.getElementById('search-combo').addEventListener('change', filterProductos);
 });
+
+let productosGlobal = [];
 
 async function loadProductos(categoriaId) {
     try {
@@ -17,7 +23,8 @@ async function loadProductos(categoriaId) {
         }
 
         const productos = await response.json();
-        displayProductos(productos, categoriaId); // Pasar categoriaId como parámetro
+        productosGlobal = productos;  // Guardar productos globalmente para filtrado
+        displayProductos(productos, categoriaId);
     } catch (error) {
         console.error('Error al cargar los productos:', error);
         Swal.fire({
@@ -35,7 +42,12 @@ function displayProductos(productos, categoriaId) {
 
     productos.forEach(producto => {
         const productCard = document.createElement('div');
-        productCard.classList.add('bg-white', 'shadow-md', 'rounded-lg', 'p-4', 'mb-4');
+        productCard.classList.add('bg-white', 'shadow-md', 'rounded-lg', 'p-4', 'mb-4', 'product-card');
+        productCard.dataset.nombre = producto.Nombre_producto;
+        productCard.dataset.descripcion = producto.Descripcion;
+        productCard.dataset.precio = producto.Precio;
+        productCard.dataset.stock = producto.Cantidad_disponible;
+        productCard.dataset.fecha = producto.Fecha_caducidad ? producto.Fecha_caducidad : 'Sin fecha';
 
         const img = document.createElement('img');
         img.src = producto.Imagen_producto;
@@ -66,7 +78,7 @@ function displayProductos(productos, categoriaId) {
         editButton.textContent = 'Editar';
         editButton.classList.add('bg-blue-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-blue-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-blue-500', 'mr-2');
         editButton.addEventListener('click', () => {
-            editProducto(producto.ID_producto, categoriaId); // Pasar categoriaId al llamar editProducto
+            editProducto(producto.ID_producto, categoriaId);
         });
 
         const deleteButton = document.createElement('button');
@@ -141,5 +153,73 @@ async function deleteProducto(idProducto) {
             text: 'Hubo un error al eliminar el producto',
             confirmButtonText: 'Aceptar'
         });
+    }
+}
+
+function filterProductos() {
+    const searchCombo = document.getElementById('search-combo').value;
+    const searchInput = document.getElementById('search-input').value.trim().toLowerCase();
+    const errorMessage = document.getElementById('error-message');
+    errorMessage.classList.add('hidden');
+    
+    let isValid = true;
+
+    switch (searchCombo) {
+        case 'name-description':
+            isValid = /^[a-zA-Z\s]*$/.test(searchInput);
+            break;
+        case 'price':
+            isValid = /^\d*\.?\d*$/.test(searchInput);
+            break;
+        case 'stock':
+            isValid = /^\d*$/.test(searchInput);
+            break;
+        case 'expiration':
+            isValid = /^\d{4}-\d{2}-\d{2}$/.test(searchInput);
+            break;
+        default:
+            isValid = true;
+    }
+
+    if (!isValid) {
+        errorMessage.textContent = 'Entrada inválida para el tipo de búsqueda seleccionado.';
+        errorMessage.classList.remove('hidden');
+        return;
+    }
+
+    const productosContainer = document.getElementById('productos-container');
+    const productCards = productosContainer.getElementsByClassName('product-card');
+
+    for (let productCard of productCards) {
+        const nombre = productCard.dataset.nombre.toLowerCase();
+        const descripcion = productCard.dataset.descripcion.toLowerCase();
+        const precio = productCard.dataset.precio.toLowerCase();
+        const stock = productCard.dataset.stock.toLowerCase();
+        const fecha = productCard.dataset.fecha.toLowerCase();
+
+        let isMatch = false;
+
+        switch (searchCombo) {
+            case 'name-description':
+                isMatch = nombre.includes(searchInput) || descripcion.includes(searchInput);
+                break;
+            case 'price':
+                isMatch = precio.includes(searchInput);
+                break;
+            case 'stock':
+                isMatch = stock.includes(searchInput);
+                break;
+            case 'expiration':
+                isMatch = fecha.includes(searchInput);
+                break;
+            default:
+                isMatch = true;
+        }
+
+        if (isMatch) {
+            productCard.classList.remove('hidden');
+        } else {
+            productCard.classList.add('hidden');
+        }
     }
 }

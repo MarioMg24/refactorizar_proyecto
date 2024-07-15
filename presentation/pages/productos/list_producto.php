@@ -17,8 +17,8 @@
         Agregar Nuevo Producto
       </button>
     </div>
-        <!-- Campos de búsqueda avanzada -->
-        <div class="mb-4 flex flex-wrap gap-4">
+    <!-- Campos de búsqueda avanzada -->
+    <div class="mb-4 flex flex-wrap gap-4">
       <div class="w-full md:w-1/4">
         <label for="search-combo" class="block text-gray-700">Buscar por</label>
         <select id="search-combo" class="border rounded-md px-4 py-2 w-full">
@@ -40,10 +40,10 @@
       <!-- Los productos se cargarán aquí dinámicamente -->
     </div>
   </main>
-   <!-- Pie de Página -->
-   <footer class="bg-blue-800 p-4 text-center text-white">
+  <!-- Pie de Página -->
+  <footer class="bg-blue-800 p-4 text-center text-white">
     <p>Espoch todos los derechos reservados © 2024</p>
   </footer>
   <script src="../../scripts/list_producto.js"></script>
-  </body>
+</body>
 </html>
