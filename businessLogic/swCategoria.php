@@ -87,18 +87,102 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 // Update Categoria
-else if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $idCategoria = intval($data['idCategoria']);
-    $nombreCategoria = $data['nombreCategoria'];
-    $imagenCategoria = $data['imagenCategoria'];
-    $objConexion = new ConexionDB();
-    $objCategoria = new Categoria($objConexion);
-    $objCategoria->setIdCategoria($idCategoria);
-    $objCategoria->setNombreCategoria($nombreCategoria);
-    $objCategoria->setImagenCategoria($imagenCategoria);
-    $objCategoria->updateCategoria();
-    $response = array('success' => true, 'message' => 'Categoria actualizada correctamente');
+// Update Categoria
+if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
+    // Obtener el cuerpo de la solicitud PUT
+    $putData = file_get_contents("php://input");
+    $boundary = substr($putData, 0, strpos($putData, "\r\n"));
+
+    // Parsear los datos del formulario
+    $parts = array_slice(explode($boundary, $putData), 1);
+    $data = array();
+
+    foreach ($parts as $part) {
+        if ($part == "--\r\n") break;
+
+        $part = ltrim($part, "\r\n");
+        list($raw_headers, $body) = explode("\r\n\r\n", $part, 2);
+
+        $raw_headers = explode("\r\n", $raw_headers);
+        $headers = array();
+        foreach ($raw_headers as $header) {
+            list($name, $value) = explode(':', $header);
+            $headers[strtolower($name)] = ltrim($value, ' ');
+        }
+
+        if (isset($headers['content-disposition'])) {
+            $filename = null;
+            preg_match(
+                '/^(.+); *name="([^"]+)"(; *filename="([^"]+)")?/',
+                $headers['content-disposition'],
+                $matches
+            );
+            $name = $matches[2];
+            $filename = isset($matches[4]) ? $matches[4] : null;
+
+            if ($filename !== null) {
+                $data[$name] = array(
+                    'filename' => $filename,
+                    'content' => $body
+                );
+            } else {
+                $data[$name] = substr($body, 0, strlen($body) - 2);
+            }
+        }
+    }
+
+    // Procesar los datos
+    $idCategoria = isset($data['idCategoria']) ? intval($data['idCategoria']) : null;
+    $nombreCategoria = isset($data['nombreCategoria']) ? $data['nombreCategoria'] : '';
+    $imagenCategoria = isset($data['imagenCategoria']) ? $data['imagenCategoria'] : null;
+
+    if ($idCategoria !== null) {
+        $objConexion = new ConexionDB();
+        $objCategoria = new Categoria($objConexion);
+        
+        // Obtener la categoría existente
+        $categoriaExistente = $objCategoria->readCategoriaById($idCategoria);
+        
+        if ($categoriaExistente) {
+            $objCategoria->setIdCategoria($idCategoria);
+
+            // Actualizar el nombre si se proporciona uno nuevo
+            if (!empty($nombreCategoria)) {
+                $objCategoria->setNombreCategoria($nombreCategoria);
+            } else {
+                $objCategoria->setNombreCategoria($categoriaExistente['Nombre_categoria']);
+            }
+
+            // Manejar la imagen
+            if ($imagenCategoria !== null) {
+                $uploadDirectory = '../presentation/pages/categorias/img_categorias/';
+                $uploadedFile = $uploadDirectory . $imagenCategoria['filename'];
+
+                if (file_put_contents($uploadedFile, $imagenCategoria['content'])) {
+                    $rutaImagen = './img_categorias/' . $imagenCategoria['filename'];
+                    $objCategoria->setImagenCategoria($rutaImagen);
+                } else {
+                    $response = array('success' => false, 'message' => 'Error al subir la nueva imagen');
+                    echo json_encode($response);
+                    exit;
+                }
+            } else {
+                // Mantener la imagen existente
+                $objCategoria->setImagenCategoria($categoriaExistente['Imagen_categoria']);
+            }
+
+            if ($objCategoria->updateCategoria()) {
+                $response = array('success' => true, 'message' => 'Categoría actualizada correctamente');
+            } else {
+                $response = array('success' => false, 'message' => 'Error al actualizar la categoría');
+            }
+        } else {
+            $response = array('success' => false, 'message' => 'Categoría no encontrada');
+        }
+    } else {
+        $response = array('success' => false, 'message' => 'No se proporcionó ID de categoría');
+    }
+
     echo json_encode($response);
     exit;
 }

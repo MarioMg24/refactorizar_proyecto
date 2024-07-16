@@ -50,14 +50,15 @@ editCategoryForm.addEventListener('submit', (event) => {
 });
 
 async function updateCategory(event) {
+    event.preventDefault();
+    
     const idCategoria = document.getElementById('ID_categoria').value;
     const nombreCategoria = document.getElementById('Nombre_categoria').value;
-    const imagenCategoria = document.getElementById('Imagen_categoria').files[0]; // Obtener la nueva imagen seleccionada
+    const imagenCategoria = document.getElementById('Imagen_categoria').files[0];
+
     const formData = new FormData();
     formData.append('idCategoria', idCategoria);
     formData.append('nombreCategoria', nombreCategoria);
-
-    // Solo agregar la imagen al FormData si se seleccionó una nueva
     if (imagenCategoria) {
         formData.append('imagenCategoria', imagenCategoria);
     }
