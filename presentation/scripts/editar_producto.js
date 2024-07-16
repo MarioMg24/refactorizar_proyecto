@@ -84,6 +84,8 @@ function llenarSelectCategorias(categorias) {
 async function editarProducto(idProducto) {
     const formEditarProducto = document.getElementById('form-editar-producto');
     const formData = new FormData(formEditarProducto);
+    const categoriaId = formData.get('categoria');
+
 
     try {
         const response = await fetch(`http://refactorizar_proyecto.test/businessLogic/swProducto.php?id_producto=${idProducto}`, {
@@ -99,7 +101,7 @@ async function editarProducto(idProducto) {
                 text: result.message,
                 confirmButtonText: 'Aceptar'
             }).then(() => {
-                window.location.href = 'listado_productos.php'; // Redirigir al listado de productos después de editar
+                window.location.href = `../productos/list_producto.php?idcategoria=${categoriaId}`;;
             });
         } else {
             Swal.fire({

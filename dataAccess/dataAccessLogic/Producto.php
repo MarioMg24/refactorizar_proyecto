@@ -128,7 +128,16 @@ class Producto {
         try {
             $sql = "UPDATE Producto SET Nombre_producto=?, Descripcion=?, Precio=?, Imagen_producto=?, Cantidad_disponible=?, ID_categoria=?, Fecha_caducidad=? WHERE ID_producto=?";
             $stmt = $this->connectionDB->prepare($sql);
-            $stmt->execute(array($this->getNombreProducto(), $this->getDescripcionProducto(), $this->getPrecioProducto(), $this->getImagenProducto(), $this->getCantidadDisponible(), $this->getCategoriaId(), $this->getFechaVencimiento(), $this->getIdProducto()));
+            $stmt->execute(array(
+                $this->getNombreProducto(),
+                $this->getDescripcionProducto(),
+                $this->getPrecioProducto(),
+                $this->getImagenProducto(),
+                $this->getCantidadDisponible(),
+                $this->getCategoriaId(),
+                $this->getFechaVencimiento(),
+                $this->getIdProducto()
+            ));
             $count = $stmt->rowCount();
             return $count > 0;
         } catch (PDOException $e) {

@@ -8,12 +8,11 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
-    <!-- Contenido Principal -->
     <?php include('../../components/header.php');?>
     <main class="container mx-auto mt-8">
         <h2 class="text-2xl font-bold mb-4 text-gray-800">Editar Producto</h2>
 
-        <form id="form-editar-producto" class="bg-white p-6 rounded-lg shadow-md" enctype="multipart/form-data">
+        <form id="form-editar-producto" class="bg-white p-6 rounded-lg shadow-md">
             <input type="hidden" id="id_producto" name="id_producto">
 
             <div class="mb-4">
@@ -61,7 +60,6 @@
         </form>
     </main>
 
-    <!-- Pie de Página -->
     <footer class="bg-blue-800 p-4 text-center text-white">
         <p>Espoch todos los derechos reservados © 2024</p>
     </footer>
