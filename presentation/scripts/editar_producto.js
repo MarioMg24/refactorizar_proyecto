@@ -83,9 +83,24 @@ function llenarSelectCategorias(categorias) {
 
 async function editarProducto(idProducto) {
     const formEditarProducto = document.getElementById('form-editar-producto');
-    const formData = new FormData(formEditarProducto);
-    const categoriaId = formData.get('categoria');
+    const formData = new FormData();
+    
+    // Obtener todos los campos del formulario
+    const campos = formEditarProducto.elements;
+    
+    for (let i = 0; i < campos.length; i++) {
+        const campo = campos[i];
+        if (campo.name) {
+            // Si es el campo de imagen, solo añadirlo si se ha seleccionado un archivo
+            if (campo.name === 'imagen' && campo.files.length > 0) {
+                formData.append(campo.name, campo.files[0]);
+            } else if (campo.name !== 'imagen') {
+                formData.append(campo.name, campo.value);
+            }
+        }
+    }
 
+    const categoriaId = formData.get('categoria');
 
     try {
         const response = await fetch(`http://refactorizar_proyecto.test/businessLogic/swProducto.php?id_producto=${idProducto}`, {
@@ -101,7 +116,7 @@ async function editarProducto(idProducto) {
                 text: result.message,
                 confirmButtonText: 'Aceptar'
             }).then(() => {
-                window.location.href = `../productos/list_producto.php?idcategoria=${categoriaId}`;;
+                window.location.href = `../productos/list_producto.php?idcategoria=${categoriaId}`;
             });
         } else {
             Swal.fire({

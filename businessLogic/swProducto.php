@@ -133,15 +133,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
 
     // Procesar los datos
     $idProducto = isset($data['id_producto']) ? intval($data['id_producto']) : null;
-    $nombreProducto = isset($data['nombre']) ? $data['nombre'] : '';
-    $descripcionProducto = isset($data['descripcion']) ? $data['descripcion'] : '';
-    $precioProducto = isset($data['precio']) ? floatval($data['precio']) : 0;
-    $cantidadDisponible = isset($data['cantidad']) ? intval($data['cantidad']) : 0;
     $categoriaId = isset($data['categoria']) ? intval($data['categoria']) : null;
-    $fechaVencimiento = isset($data['fecha_caducidad']) ? $data['fecha_caducidad'] : null;
-    $imagenProducto = isset($data['imagen']) ? $data['imagen'] : null;
 
-    if ($idProducto !== null) {
+    if ($idProducto !== null && $categoriaId !== null) {
         $objConexion = new ConexionDB();
         $objProducto = new Producto($objConexion);
         
@@ -150,20 +144,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
         
         if ($productoExistente) {
             $objProducto->setIdProducto($idProducto);
-            $objProducto->setNombreProducto($nombreProducto);
-            $objProducto->setDescripcionProducto($descripcionProducto);
-            $objProducto->setPrecioProducto($precioProducto);
-            $objProducto->setCantidadDisponible($cantidadDisponible);
+            
+            // Actualizar solo los campos que han cambiado
+            $objProducto->setNombreProducto(isset($data['nombre']) ? $data['nombre'] : $productoExistente['Nombre_producto']);
+            $objProducto->setDescripcionProducto(isset($data['descripcion']) ? $data['descripcion'] : $productoExistente['Descripcion']);
+            $objProducto->setPrecioProducto(isset($data['precio']) ? floatval($data['precio']) : $productoExistente['Precio']);
+            $objProducto->setCantidadDisponible(isset($data['cantidad']) ? intval($data['cantidad']) : $productoExistente['Cantidad_disponible']);
             $objProducto->setCategoriaId($categoriaId);
-            $objProducto->setFechaVencimiento($fechaVencimiento);
+            $objProducto->setFechaVencimiento(isset($data['fecha_caducidad']) ? $data['fecha_caducidad'] : $productoExistente['Fecha_caducidad']);
 
             // Manejar la imagen
-            if ($imagenProducto !== null) {
+            if (isset($data['imagen']) && $data['imagen']['filename'] !== '') {
                 $uploadDirectory = '../presentation/pages/productos/img_productos/';
-                $uploadedFile = $uploadDirectory . $imagenProducto['filename'];
+                $uploadedFile = $uploadDirectory . $data['imagen']['filename'];
 
-                if (file_put_contents($uploadedFile, $imagenProducto['content'])) {
-                    $rutaImagen = './img_productos/' . $imagenProducto['filename'];
+                if (file_put_contents($uploadedFile, $data['imagen']['content'])) {
+                    $rutaImagen = './img_productos/' . $data['imagen']['filename'];
                     $objProducto->setImagenProducto($rutaImagen);
                 } else {
                     $response = array('success' => false, 'message' => 'Error al subir la nueva imagen');
@@ -184,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
             $response = array('success' => false, 'message' => 'Producto no encontrado');
         }
     } else {
-        $response = array('success' => false, 'message' => 'No se proporcionó ID de producto');
+        $response = array('success' => false, 'message' => 'No se proporcionó ID de producto o categoría');
     }
 
     echo json_encode($response);
