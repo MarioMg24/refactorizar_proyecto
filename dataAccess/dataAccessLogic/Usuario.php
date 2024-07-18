@@ -107,6 +107,20 @@ class Usuario {
         return [];
     }
 
+    public function readUsuarioById($idUsuario): array {
+        try {
+            $sql = "SELECT * FROM Usuario WHERE ID_usuario = ?";
+            $stmt = $this->connectionDB->prepare($sql);
+            $stmt->execute(array($idUsuario));
+            $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            $usuario = $stmt->fetch();
+            return $usuario ? $usuario : [];
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+            return [];
+        }
+    }
+
     // Delete Usuario
     public function deleteUsuario(): bool {
         try {
@@ -121,12 +135,11 @@ class Usuario {
         }
     }
 
-    // Update Usuario
     public function updateUsuario(): bool {
         try {
-            $sql = "UPDATE Usuario SET Nombre=?, Apellido=?, Correo_electronico=?, Contraseña=?, Telefono=?, Direccion=?, Perfil=? WHERE ID_usuario=?";
+            $sql = "UPDATE Usuario SET Nombre=?, Apellido=?, Correo_electronico=?, Telefono=?, Direccion=?, Perfil=? WHERE ID_usuario=?";
             $stmt = $this->connectionDB->prepare($sql);
-            $stmt->execute(array($this->getNombre(), $this->getApellido(), $this->getCorreoElectronico(), $this->getContraseña(), $this->getTelefono(), $this->getDireccion(), $this->getPerfil(), $this->getIdUsuario()));
+            $stmt->execute(array($this->getNombre(), $this->getApellido(), $this->getCorreoElectronico(), $this->getTelefono(), $this->getDireccion(), $this->getPerfil(), $this->getIdUsuario()));
             $count = $stmt->rowCount();
             return $count > 0;
         } catch (PDOException $e) {
@@ -141,7 +154,7 @@ class Usuario {
             $stmt = $this->connectionDB->prepare($sql);
             $stmt->execute(array($correo_electronico, $contrasena));
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $user ? true : false;
+            return $user ? $user : false;
         } catch (PDOException $e) {
             echo $e->getMessage();
             return false;

@@ -22,6 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $result = $objUsuario->loginUsuario($correo_electronico, $contrasena);
 
         if ($result) {
+            session_start();
+            $_SESSION['user'] = $result;
             $response = array('success' => true, 'message' => 'Inicio de sesión exitoso');
         } else {
             $response = array('success' => false, 'message' => 'Correo electrónico o contraseña incorrectos');
@@ -66,12 +68,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     sendError('Acción no válida.');
 }
 
-// Leer todos los usuarios
+// Manejar solicitudes GET
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $objConexion = new ConexionDB();
     $objUsuario = new Usuario($objConexion);
-    $array = $objUsuario->readUsuario();
-    echo json_encode($array);
+
+    // Read Usuario by ID
+    if (isset($_GET['id_usuario'])) {
+        $idUsuario = intval($_GET['id_usuario']);
+        $usuario = $objUsuario->readUsuarioById($idUsuario);
+        echo json_encode($usuario);
+    } 
+    // Leer todos los usuarios
+    else {
+        $array = $objUsuario->readUsuario();
+        echo json_encode($array);
+    }
     exit;
 }
 
