@@ -160,6 +160,21 @@ class Usuario {
             return false;
         }
     }
+
+    public function readUsuarioByEmail($correoElectronico) {
+        try {
+            $sql = "SELECT * FROM Usuario WHERE Correo_electronico = ?";
+            $stmt = $this->connectionDB->prepare($sql);
+            $stmt->execute(array($correoElectronico));
+            $stmt->setFetchMode(PDO::FETCH_ASSOC);
+            $usuario = $stmt->fetch();
+            return $usuario ? $usuario : [];
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+            return [];
+        }
+    }
+
     
 }
 ?>

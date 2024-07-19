@@ -1,3 +1,10 @@
+<?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    header('Location: ../usuarios/login.php'); // Redirigir al login si no hay sesión activa
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>

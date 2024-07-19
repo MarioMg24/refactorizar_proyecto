@@ -2,69 +2,65 @@
 include '../dataAccess/conexion/Conexion.php';
 include '../dataAccess/dataAccessLogic/Usuario.php';
 
-// Función para devolver errores JSON
-function sendError($message) {
-    $response = array('success' => false, 'message' => $message);
-    echo json_encode($response);
+function sendResponse($data) {
+    header('Content-Type: application/json');
+    echo json_encode($data);
     exit;
 }
 
-// Inicio de sesión
+function sendError($message) {
+    sendResponse(array('success' => false, 'message' => $message));
+}
+
+// Manejar solicitudes POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
 
-    if (isset($data['action']) && $data['action'] == 'login') {
-        $correo_electronico = $data['correo_electronico'];
-        $contrasena = $data['contrasena'];
-
+    if (isset($data['action'])) {
         $objConexion = new ConexionDB();
         $objUsuario = new Usuario($objConexion);
-        $result = $objUsuario->loginUsuario($correo_electronico, $contrasena);
 
-        if ($result) {
-            session_start();
-            $_SESSION['user'] = $result;
-            $response = array('success' => true, 'message' => 'Inicio de sesión exitoso');
-        } else {
-            $response = array('success' => false, 'message' => 'Correo electrónico o contraseña incorrectos');
-        }
-        echo json_encode($response);
-        exit;
-    }
+        if ($data['action'] == 'login') {
+            $correo_electronico = $data['correo_electronico'];
+            $contrasena = $data['contrasena'];
 
-    // Registro de usuario
-    if (isset($data['action']) && $data['action'] == 'register') {
-        $nombre = $data['nombre'];
-        $apellido = $data['apellido'];
-        $correo_electronico = $data['correo_electronico'];
-        $contrasena = $data['contrasena'];
-        $telefono = isset($data['telefono']) ? $data['telefono'] : '';
-        $direccion = isset($data['direccion']) ? $data['direccion'] : '';
-        $perfil = $data['perfil'];
+            $result = $objUsuario->loginUsuario($correo_electronico, $contrasena);
 
-        if (empty($nombre) || empty($apellido) || empty($correo_electronico) || empty($contrasena) || empty($perfil)) {
-            sendError('Por favor, complete todos los campos obligatorios.');
+            if ($result) {
+                session_start();
+                $_SESSION['user'] = $result;
+                sendResponse(array('success' => true, 'message' => 'Inicio de sesión exitoso'));
+            } else {
+                sendError('Correo electrónico o contraseña incorrectos');
+            }
         }
 
-        // Verificación de correo electrónico único (opcional, dependiendo de tu aplicación)
+        if ($data['action'] == 'register') {
+            $nombre = $data['nombre'];
+            $apellido = $data['apellido'];
+            $correo_electronico = $data['correo_electronico'];
+            $contrasena = $data['contrasena'];
+            $telefono = isset($data['telefono']) ? $data['telefono'] : '';
+            $direccion = isset($data['direccion']) ? $data['direccion'] : '';
+            $perfil = $data['perfil'];
 
-        $objConexion = new ConexionDB();
-        $objUsuario = new Usuario($objConexion);
-        $objUsuario->setNombre($nombre);
-        $objUsuario->setApellido($apellido);
-        $objUsuario->setCorreoElectronico($correo_electronico);
-        $objUsuario->setContraseña($contrasena);
-        $objUsuario->setTelefono($telefono);
-        $objUsuario->setDireccion($direccion);
-        $objUsuario->setPerfil($perfil);
+            if (empty($nombre) || empty($apellido) || empty($correo_electronico) || empty($contrasena) || empty($perfil)) {
+                sendError('Por favor, complete todos los campos obligatorios.');
+            }
 
-        $success = $objUsuario->addUsuario();
-        $response = array('success' => $success, 'message' => $success ? 'Usuario añadido correctamente' : 'Error al añadir usuario');
-        echo json_encode($response);
-        exit;
+            $objUsuario->setNombre($nombre);
+            $objUsuario->setApellido($apellido);
+            $objUsuario->setCorreoElectronico($correo_electronico);
+            $objUsuario->setContraseña($contrasena);
+            $objUsuario->setTelefono($telefono);
+            $objUsuario->setDireccion($direccion);
+            $objUsuario->setPerfil($perfil);
+
+            $success = $objUsuario->addUsuario();
+            sendResponse(array('success' => $success, 'message' => $success ? 'Usuario añadido correctamente' : 'Error al añadir usuario'));
+        }
     }
 
-    // Si ninguna acción coincide
     sendError('Acción no válida.');
 }
 
@@ -73,24 +69,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $objConexion = new ConexionDB();
     $objUsuario = new Usuario($objConexion);
 
-    // Read Usuario by ID
+    if (isset($_GET['perfil']) && $_GET['perfil'] === 'true') {
+        session_start();
+        if (!isset($_SESSION['user']) || !is_array($_SESSION['user'])) {
+            sendError('Usuario no autenticado o sesión inválida');
+        }
+
+        if (!isset($_SESSION['user']['ID_Usuario'])) {
+            if (isset($_SESSION['user']['Correo_electronico'])) {
+                $correoElectronico = $_SESSION['user']['Correo_electronico'];
+                $usuario = $objUsuario->readUsuarioByEmail($correoElectronico);
+            } else {
+                sendError('Información de usuario incompleta en la sesión');
+            }
+        } else {
+            $idUsuario = $_SESSION['user']['ID_Usuario'];
+            $usuario = $objUsuario->readUsuarioById($idUsuario);
+        }
+
+        if (!$usuario) {
+            sendError('No se pudo obtener la información del usuario');
+        }
+
+        unset($usuario['Contrasena']);
+        sendResponse($usuario);
+    }
+
     if (isset($_GET['id_usuario'])) {
         $idUsuario = intval($_GET['id_usuario']);
         $usuario = $objUsuario->readUsuarioById($idUsuario);
-        echo json_encode($usuario);
-    } 
-    // Leer todos los usuarios
-    else {
-        $array = $objUsuario->readUsuario();
-        echo json_encode($array);
+        sendResponse($usuario);
     }
-    exit;
+
+    $array = $objUsuario->readUsuario();
+    sendResponse($array);
 }
 
-// Eliminar usuario
+// Manejar solicitudes DELETE
 if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
     $idUsuario = isset($_GET['id']) ? intval($_GET['id']) : 0;
-    
+
     if ($idUsuario <= 0) {
         sendError('ID de usuario no válido.');
     }
@@ -99,12 +117,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
     $objUsuario = new Usuario($objConexion);
     $objUsuario->setIdUsuario($idUsuario);
     $objUsuario->deleteUsuario();
-    $response = array('success' => true, 'message' => 'Usuario eliminado correctamente');
-    echo json_encode($response);
-    exit;
+    sendResponse(array('success' => true, 'message' => 'Usuario eliminado correctamente'));
 }
 
-// Actualizar usuario
+// Manejar solicitudes PUT
 if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     $data = json_decode(file_get_contents('php://input'), true);
     $idUsuario = isset($data['idUsuario']) ? intval($data['idUsuario']) : 0;
@@ -125,7 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
         sendError('Por favor, complete todos los campos obligatorios.');
     }
 
-    $objConexion = new ConexionDB();
     $objUsuario = new Usuario($objConexion);
     $objUsuario->setIdUsuario($idUsuario);
     $objUsuario->setNombre($nombre);
@@ -137,11 +152,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     $objUsuario->setPerfil($perfil);
 
     $success = $objUsuario->updateUsuario();
-    $response = array('success' => $success, 'message' => $success ? 'Usuario actualizado correctamente' : 'Error al actualizar usuario');
-    echo json_encode($response);
-    exit;
+    sendResponse(array('success' => $success, 'message' => $success ? 'Usuario actualizado correctamente' : 'Error al actualizar usuario'));
 }
 
-// Si ninguna solicitud coincide
 sendError('Método HTTP no permitido.');
 ?>
