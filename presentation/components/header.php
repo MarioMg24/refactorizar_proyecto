@@ -11,7 +11,6 @@ $user = $_SESSION['user'];
     <nav>
       <ul class="flex space-x-4">
         <li><a href="../categorias/list_categoria.php" class="text-white hover:text-gray-300">Categorías</a></li>
-        <li><a href="../productos/list_producto.php" class="text-white hover:text-gray-300">Productos</a></li>
         <li><a href="../proveedores/list_proveedor.php" class="text-white hover:text-gray-300">Proveedores</a></li>
         <li><a href="../usuarios/list_usuario.php" class="text-white hover:text-gray-300">Usuarios</a></li>
         <li>

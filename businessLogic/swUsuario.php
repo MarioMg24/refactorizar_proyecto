@@ -1,6 +1,8 @@
 <?php
+
 include '../dataAccess/conexion/Conexion.php';
 include '../dataAccess/dataAccessLogic/Usuario.php';
+
 
 function sendResponse($data) {
     header('Content-Type: application/json');
@@ -9,9 +11,13 @@ function sendResponse($data) {
 }
 
 function sendError($message) {
-    sendResponse(array('success' => false, 'message' => $message));
+    header('Content-Type: application/json');
+    echo json_encode(array('success' => false, 'message' => $message));
+    exit;
 }
 
+
+// Manejar solicitudes POST
 // Manejar solicitudes POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
@@ -59,10 +65,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $success = $objUsuario->addUsuario();
             sendResponse(array('success' => $success, 'message' => $success ? 'Usuario añadido correctamente' : 'Error al añadir usuario'));
         }
+
+        if ($data['action'] == 'changePassword') {
+            session_start();
+            if (!isset($_SESSION['user']) || !is_array($_SESSION['user'])) {
+                sendError('Usuario no autenticado o sesión inválida');
+            }
+        
+            // Verificar si existe ID_Usuario, si no, buscar por correo electrónico
+            if (isset($_SESSION['user']['ID_Usuario'])) {
+                $idUsuario = $_SESSION['user']['ID_Usuario'];
+            } elseif (isset($_SESSION['user']['Correo_electronico'])) {
+                $correoElectronico = $_SESSION['user']['Correo_electronico'];
+                $usuario = $objUsuario->readUsuarioByEmail($correoElectronico);
+                if (!$usuario) {
+                    sendError('No se pudo encontrar el usuario');
+                }
+                $idUsuario = $usuario['ID_usuario'];
+            } else {
+                sendError('Información de usuario incompleta en la sesión');
+            }
+        
+            $nuevaContrasena = $data['nueva_contrasena'];
+        
+            $objUsuario->setIdUsuario($idUsuario);
+            $objUsuario->setContraseña($nuevaContrasena);
+        
+            try {
+                $success = $objUsuario->changePassword();
+                if ($success) {
+                    session_destroy();
+                    sendResponse(array('success' => true, 'message' => 'Contraseña cambiada correctamente. Inicie sesión nuevamente.'));
+                } else {
+                    sendError('No se pudo cambiar la contraseña');
+                }
+            } catch (Exception $e) {
+                sendError('Error al cambiar la contraseña: ' . $e->getMessage());
+            }
+        }
     }
 
     sendError('Acción no válida.');
 }
+
 
 // Manejar solicitudes GET
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {

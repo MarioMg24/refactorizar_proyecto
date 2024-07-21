@@ -175,6 +175,23 @@ class Usuario {
         }
     }
 
+    public function changePassword(): bool {
+        try {
+            $sql = "UPDATE Usuario SET Contraseña = ? WHERE ID_usuario = ?";
+            $stmt = $this->connectionDB->prepare($sql);
+            $stmt->execute(array($this->getContraseña(), $this->getIdUsuario()));
+            $count = $stmt->rowCount();
+            if ($count === 0) {
+                throw new Exception("No se actualizó ningún registro");
+            }
+            return true;
+        } catch (PDOException $e) {
+            error_log("Error en changePassword: " . $e->getMessage());
+            throw new Exception("Error de base de datos: " . $e->getMessage());
+        }
+    }
+    
+
     
 }
 ?>

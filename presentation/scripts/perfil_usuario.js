@@ -45,12 +45,70 @@ function mostrarPerfilUsuario(usuario) {
         <p class="mb-2"><strong>Teléfono:</strong> ${usuario.Telefono || 'No especificado'}</p>
         <p class="mb-2"><strong>Dirección:</strong> ${usuario.Direccion || 'No especificada'}</p>
         <p class="mb-2"><strong>Perfil:</strong> ${usuario.Perfil}</p>
-        <button onclick="editarPerfil()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            Editar Perfil
+        <button onclick="cambiarContrasena()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            Cambiar Contraseña
         </button>
     `;
 }
 
-async function editarPerfil() {
-    console.log('Editar perfil');
+
+async function cambiarContrasena() {
+    const { value: nuevaContrasena } = await Swal.fire({
+        title: 'Cambiar Contraseña',
+        input: 'password',
+        inputLabel: 'Nueva Contraseña',
+        inputPlaceholder: 'Ingrese la nueva contraseña',
+        inputAttributes: {
+            maxlength: 50,
+            autocapitalize: 'off',
+            autocorrect: 'off'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Cambiar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (nuevaContrasena) {
+        try {
+            const response = await fetch('http://refactorizar_proyecto.test/businessLogic/swUsuario.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'changePassword',
+                    nueva_contrasena: nuevaContrasena
+                })
+            });
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Contraseña Cambiada',
+                        text: result.message,
+                        confirmButtonText: 'Aceptar'
+                    }).then(() => {
+                        window.location.href = 'login.php';
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+            } else {
+                const text = await response.text();
+                throw new Error('La respuesta no es JSON: ' + text);
+            }
+        } catch (error) {
+            console.error('Error completo:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un error al cambiar la contraseña: ' + error.message,
+                confirmButtonText: 'Aceptar'
+            });
+        }
+    }
 }
