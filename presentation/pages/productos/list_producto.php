@@ -4,6 +4,9 @@ if (!isset($_SESSION['user'])) {
     header('Location: ../usuarios/login.php'); // Redirigir al login si no hay sesión activa
     exit;
 }
+
+// Verificar si el usuario es administrador
+$isAdmin = isset($_SESSION['user']['Perfil']) && $_SESSION['user']['Perfil'] === 'Administrador';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -19,11 +22,15 @@ if (!isset($_SESSION['user'])) {
   <?php include('../../components/header.php');?>
   <main class="container mx-auto mt-8">
     <h2 class="text-2xl font-bold mb-4 text-gray-800">Productos</h2>
+
+    <?php if ($isAdmin): ?>
     <div class="mb-4">
       <button onclick="window.location.href='./add_producto.php'" class="bg-yellow-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 font-bold">
         Agregar Nuevo Producto
       </button>
     </div>
+    <?php endif; ?>
+
     <!-- Campos de búsqueda avanzada -->
     <div class="mb-4 flex flex-wrap gap-4">
       <div class="w-full md:w-1/4">
@@ -51,6 +58,9 @@ if (!isset($_SESSION['user'])) {
   <footer class="bg-blue-800 p-4 text-center text-white">
     <p>Espoch todos los derechos reservados © 2024</p>
   </footer>
+  <script>
+    var isAdmin = <?php echo json_encode($isAdmin); ?>;
+  </script>
   <script src="../../scripts/list_producto.js"></script>
 </body>
 </html>

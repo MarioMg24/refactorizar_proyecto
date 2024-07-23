@@ -24,7 +24,7 @@ async function loadProductos(categoriaId) {
 
         const productos = await response.json();
         productosGlobal = productos;  // Guardar productos globalmente para filtrado
-        displayProductos(productos, categoriaId);
+        displayProductos(productos);
     } catch (error) {
         console.error('Error al cargar los productos:', error);
         Swal.fire({
@@ -36,7 +36,7 @@ async function loadProductos(categoriaId) {
     }
 }
 
-function displayProductos(productos, categoriaId) {
+function displayProductos(productos) {
     const productosContainer = document.getElementById('productos-container');
     productosContainer.innerHTML = '';
 
@@ -77,6 +77,7 @@ function displayProductos(productos, categoriaId) {
         const editButton = document.createElement('button');
         editButton.textContent = 'Editar';
         editButton.classList.add('bg-blue-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-blue-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-blue-500', 'mr-2');
+        editButton.style.display = isAdmin ? 'inline-block' : 'none';  // Mostrar solo si es administrador
         editButton.addEventListener('click', () => {
             editProducto(producto.ID_producto, categoriaId);
         });
@@ -84,8 +85,23 @@ function displayProductos(productos, categoriaId) {
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Eliminar';
         deleteButton.classList.add('bg-red-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-red-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-red-500');
+        deleteButton.style.display = isAdmin ? 'inline-block' : 'none';  // Mostrar solo si es administrador
         deleteButton.addEventListener('click', () => {
             confirmDeleteProducto(producto.ID_producto);
+        });
+
+        const addToCartButton = document.createElement('button');
+        addToCartButton.textContent = 'Agregar al Carrito';
+        addToCartButton.classList.add('bg-green-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-green-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-green-500');
+        addToCartButton.style.display = isAdmin ? 'none' : 'inline-block';  // Mostrar solo si no es administrador
+        addToCartButton.addEventListener('click', () => {
+            // Lógica para agregar al carrito
+            Swal.fire({
+                icon: 'info',
+                title: 'Agregar al Carrito',
+                text: 'Esta funcionalidad no está implementada aún.',
+                confirmButtonText: 'Aceptar'
+            });
         });
 
         productCard.appendChild(img);
@@ -96,130 +112,76 @@ function displayProductos(productos, categoriaId) {
         productCard.appendChild(expirationDate);
         productCard.appendChild(editButton);
         productCard.appendChild(deleteButton);
+        productCard.appendChild(addToCartButton);
 
         productosContainer.appendChild(productCard);
     });
 }
 
-function editProducto(idProducto, categoriaId) {
-    window.location.href = `editar_producto.php?id_producto=${idProducto}&categoriaId=${categoriaId}`;
+function filterProductos() {
+    const searchInput = document.getElementById('search-input').value.toLowerCase();
+    const searchCombo = document.getElementById('search-combo').value;
+
+    const filteredProductos = productosGlobal.filter(producto => {
+        const searchValue = producto[searchCombo].toString().toLowerCase();
+        return searchValue.includes(searchInput);
+    });
+
+    displayProductos(filteredProductos);
 }
 
-function confirmDeleteProducto(idProducto) {
+function editProducto(id, categoriaId) {
+    // Lógica para editar el producto
     Swal.fire({
-        title: '¿Estás seguro?',
-        text: "Esta acción no se puede deshacer.",
+        icon: 'info',
+        title: 'Editar Producto',
+        text: `Funcionalidad de edición para el producto con ID ${id}.`,
+        confirmButtonText: 'Aceptar'
+    });
+}
+
+function confirmDeleteProducto(id) {
+    Swal.fire({
+        title: 'Confirmar Eliminación',
+        text: "¿Está seguro de que desea eliminar este producto?",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, eliminarlo'
+        confirmButtonText: 'Sí, Eliminar',
+        cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            deleteProducto(idProducto);
+            deleteProducto(id);
         }
     });
 }
 
-async function deleteProducto(idProducto) {
+async function deleteProducto(id) {
     try {
-        const response = await fetch(`http://refactorizar_proyecto.test/businessLogic/swProducto.php?id=${idProducto}`, {
+        const response = await fetch(`http://refactorizar_proyecto.test/businessLogic/swProducto.php?action=delete&id=${id}`, {
             method: 'DELETE'
         });
-        const result = await response.json();
-        
-        if (result.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: result.message,
-                confirmButtonText: 'Aceptar'
-            }).then(() => {
-                window.location.reload();
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: result.message,
-                confirmButtonText: 'Aceptar'
-            });
+        if (!response.ok) {
+            throw new Error('Error al eliminar el producto');
         }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Eliminado',
+            text: 'El producto ha sido eliminado.',
+            confirmButtonText: 'Aceptar'
+        }).then(() => {
+            const categoriaId = new URLSearchParams(window.location.search).get('idcategoria');
+            if (categoriaId) {
+                loadProductos(categoriaId);
+            }
+        });
     } catch (error) {
         console.error('Error al eliminar el producto:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Hubo un error al eliminar el producto',
+            text: 'Hubo un error al eliminar el producto.',
             confirmButtonText: 'Aceptar'
         });
-    }
-}
-
-function filterProductos() {
-    const searchCombo = document.getElementById('search-combo').value;
-    const searchInput = document.getElementById('search-input').value.trim().toLowerCase();
-    const errorMessage = document.getElementById('error-message');
-    errorMessage.classList.add('hidden');
-    
-    let isValid = true;
-
-    switch (searchCombo) {
-        case 'name-description':
-            isValid = /^[a-zA-Z\s]*$/.test(searchInput);
-            break;
-        case 'price':
-            isValid = /^\d*\.?\d*$/.test(searchInput);
-            break;
-        case 'stock':
-            isValid = /^\d*$/.test(searchInput);
-            break;
-        case 'expiration':
-            isValid = /^\d{4}-\d{2}-\d{2}$/.test(searchInput);
-            break;
-        default:
-            isValid = true;
-    }
-
-    if (!isValid) {
-        errorMessage.textContent = 'Entrada inválida para el tipo de búsqueda seleccionado.';
-        errorMessage.classList.remove('hidden');
-        return;
-    }
-
-    const productosContainer = document.getElementById('productos-container');
-    const productCards = productosContainer.getElementsByClassName('product-card');
-
-    for (let productCard of productCards) {
-        const nombre = productCard.dataset.nombre.toLowerCase();
-        const descripcion = productCard.dataset.descripcion.toLowerCase();
-        const precio = productCard.dataset.precio.toLowerCase();
-        const stock = productCard.dataset.stock.toLowerCase();
-        const fecha = productCard.dataset.fecha.toLowerCase();
-
-        let isMatch = false;
-
-        switch (searchCombo) {
-            case 'name-description':
-                isMatch = nombre.includes(searchInput) || descripcion.includes(searchInput);
-                break;
-            case 'price':
-                isMatch = precio.includes(searchInput);
-                break;
-            case 'stock':
-                isMatch = stock.includes(searchInput);
-                break;
-            case 'expiration':
-                isMatch = fecha.includes(searchInput);
-                break;
-            default:
-                isMatch = true;
-        }
-
-        if (isMatch) {
-            productCard.classList.remove('hidden');
-        } else {
-            productCard.classList.add('hidden');
-        }
     }
 }

@@ -1,9 +1,12 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: ../usuarios/login.php'); // Redirigir al login si no hay sesión activa
+    header('Location: ../usuarios/login.php');
     exit;
 }
+
+// Verificar si el usuario es administrador
+$isAdmin = isset($_SESSION['user']['Perfil']) && $_SESSION['user']['Perfil'] === 'Administrador';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -19,7 +22,6 @@ if (!isset($_SESSION['user'])) {
   <?php include('../../components/header.php');?>
   <main class="container mx-auto mt-8">
     <h2 class="text-2xl font-bold mb-4 text-gray-800">Usuarios</h2>
- 
 
     <!-- Tabla de Usuarios -->
     <div class="overflow-x-auto">
@@ -43,6 +45,9 @@ if (!isset($_SESSION['user'])) {
   <footer class="bg-blue-800 p-4 text-center text-white">
     <p>Espoch todos los derechos reservados © 2024</p>
   </footer>
+  <script>
+    var isAdmin = <?php echo json_encode($isAdmin); ?>;
+  </script>
   <script src="../../scripts/list_usuario.js"></script>
 </body>
 </html>

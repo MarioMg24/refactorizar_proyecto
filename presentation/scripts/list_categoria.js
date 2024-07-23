@@ -39,26 +39,16 @@ function displayCategories(categorias) {
         title.classList.add('text-xl', 'font-bold', 'mb-2', 'text-gray-800');
         title.textContent = categoria.Nombre_categoria;
 
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Editar';
-        editButton.classList.add('bg-blue-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-blue-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-blue-500', 'mr-2');
-        editButton.addEventListener('click', (event) => {
-            event.stopPropagation();  // Evitar que el clic en "Editar" redirija a otra página
-            editCategoria(categoria.ID_categoria);
-        });
-
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Eliminar';
-        deleteButton.classList.add('bg-red-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-red-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-red-500');
-        deleteButton.addEventListener('click', (event) => {
-            event.stopPropagation();  // Evitar que el clic en "Eliminar" redirija a otra página
-            confirmDeleteCategoria(categoria.ID_categoria);
-        });
-
         categoryCard.appendChild(img);
         categoryCard.appendChild(title);
-        categoryCard.appendChild(editButton);
-        categoryCard.appendChild(deleteButton);
+
+        if (isAdmin) {
+            const editButton = createButton('Editar', 'bg-blue-500', () => editCategoria(categoria.ID_categoria));
+            const deleteButton = createButton('Eliminar', 'bg-red-500', () => confirmDeleteCategoria(categoria.ID_categoria));
+
+            categoryCard.appendChild(editButton);
+            categoryCard.appendChild(deleteButton);
+        }
 
         categoryCard.addEventListener('click', () => {
             window.location.href = `../productos/list_producto.php?idcategoria=${categoria.ID_categoria}`;
@@ -66,6 +56,17 @@ function displayCategories(categorias) {
 
         categoriasContainer.appendChild(categoryCard);
     });
+}
+
+function createButton(text, bgColor, onClick) {
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.classList.add(bgColor, 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-opacity-80', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-opacity-50', 'mr-2');
+    button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        onClick();
+    });
+    return button;
 }
 
 function editCategoria(idCategoria) {

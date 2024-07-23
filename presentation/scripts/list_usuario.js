@@ -47,23 +47,15 @@ function displayUsuarios(usuarios) {
 
         const accionesCell = document.createElement('td');
         accionesCell.classList.add('px-6', 'py-4', 'whitespace-no-wrap', 'border-b', 'border-gray-300', 'text-sm', 'leading-5', 'font-medium', 'text-gray-700');
-        
-        const editarBtn = document.createElement('button');
-        editarBtn.textContent = 'Editar';
-        editarBtn.classList.add('bg-blue-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-blue-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-blue-500', 'mr-2');
-        editarBtn.addEventListener('click', () => {
-            editUsuario(usuario.ID_usuario);
-        });
 
-        const eliminarBtn = document.createElement('button');
-        eliminarBtn.textContent = 'Eliminar';
-        eliminarBtn.classList.add('bg-red-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-red-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-red-500');
-        eliminarBtn.addEventListener('click', () => {
-            confirmDeleteUsuario(usuario.ID_usuario);
-        });
+        // Solo agregar botones si el usuario es administrador
+        if (isAdmin) {
+            const editarBtn = createButton('Editar', 'bg-blue-500', () => editUsuario(usuario.ID_usuario));
+            const eliminarBtn = createButton('Eliminar', 'bg-red-500', () => confirmDeleteUsuario(usuario.ID_usuario));
 
-        accionesCell.appendChild(editarBtn);
-        accionesCell.appendChild(eliminarBtn);
+            accionesCell.appendChild(editarBtn);
+            accionesCell.appendChild(eliminarBtn);
+        }
 
         row.appendChild(idCell);
         row.appendChild(nombreCell);
@@ -73,6 +65,17 @@ function displayUsuarios(usuarios) {
 
         usuariosBody.appendChild(row);
     });
+}
+
+function createButton(text, bgColor, onClick) {
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.classList.add(bgColor, 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-opacity-80', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-opacity-50', 'mr-2');
+    button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        onClick();
+    });
+    return button;
 }
 
 function editUsuario(idUsuario) {

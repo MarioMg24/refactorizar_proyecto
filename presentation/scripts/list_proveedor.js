@@ -68,32 +68,54 @@ function displayProveedores(proveedores) {
             productosList.appendChild(noProductos);
         }
 
-        const editButton = document.createElement('button');
-        editButton.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded', 'mr-2');
-        editButton.textContent = 'Editar';
-        editButton.onclick = () => editProveedor(proveedor.ID_proveedor);
-
-        const deleteButton = document.createElement('button');
-        deleteButton.classList.add('bg-red-500', 'hover:bg-red-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded', 'mt-2');
-        deleteButton.textContent = 'Eliminar';
-        deleteButton.onclick = () => deleteProveedor(proveedor.ID_proveedor);
-
         proveedorCard.appendChild(title);
         proveedorCard.appendChild(contacto);
         proveedorCard.appendChild(terminos);
         proveedorCard.appendChild(productosTitle);
         proveedorCard.appendChild(productosList);
-        proveedorCard.appendChild(editButton);
-        proveedorCard.appendChild(deleteButton);
+
+        if (isAdmin) {
+            const editButton = createButton('Editar', 'bg-blue-500', () => editProveedor(proveedor.ID_proveedor));
+            const deleteButton = createButton('Eliminar', 'bg-red-500', () => confirmDeleteProveedor(proveedor.ID_proveedor));
+
+            proveedorCard.appendChild(editButton);
+            proveedorCard.appendChild(deleteButton);
+        }
 
         proveedoresContainer.appendChild(proveedorCard);
     });
+}
+
+function createButton(text, bgColor, onClick) {
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.classList.add(bgColor, 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-opacity-80', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-opacity-50', 'mr-2');
+    button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        onClick();
+    });
+    return button;
 }
 
 function editProveedor(idProveedor) {
     window.location.href = `editar_proveedor.php?id_proveedor=${idProveedor}`;
 }
 
+function confirmDeleteProveedor(idProveedor) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "También se eliminarán los productos asociados a este proveedor.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, eliminarlo'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            deleteProveedor(idProveedor);
+        }
+    });
+}
 
 async function deleteProveedor(idProveedor) {
     try {
