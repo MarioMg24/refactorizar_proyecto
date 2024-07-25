@@ -18,6 +18,7 @@ $user = $_SESSION['user'];
             <?php echo htmlspecialchars($user['Nombre'] . ' ' . $user['Apellido']); ?>
           </a>
         </li>
+        <li><a href="../carrito/list_productos_carrito.php" class="text-white hover:text-gray-300">Carrito</a></li>
         <li><a href="../sesiones/logout.php" class="text-white hover:text-gray-300">Cerrar sesión</a></li>
       </ul>
     </nav>

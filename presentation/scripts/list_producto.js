@@ -1,3 +1,4 @@
+// list_producto.js
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const categoriaId = urlParams.get('idcategoria');
@@ -8,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('No se proporcionó el ID de la categoría');
     }
 
-    // Agregar event listeners para los campos de búsqueda
     document.getElementById('search-input').addEventListener('input', filterProductos);
     document.getElementById('search-combo').addEventListener('change', filterProductos);
 });
@@ -23,7 +23,7 @@ async function loadProductos(categoriaId) {
         }
 
         const productos = await response.json();
-        productosGlobal = productos;  // Guardar productos globalmente para filtrado
+        productosGlobal = productos;
         displayProductos(productos);
     } catch (error) {
         console.error('Error al cargar los productos:', error);
@@ -77,7 +77,7 @@ function displayProductos(productos) {
         const editButton = document.createElement('button');
         editButton.textContent = 'Editar';
         editButton.classList.add('bg-blue-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-blue-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-blue-500', 'mr-2');
-        editButton.style.display = isAdmin ? 'inline-block' : 'none';  // Mostrar solo si es administrador
+        editButton.style.display = isAdmin ? 'inline-block' : 'none';
         editButton.addEventListener('click', () => {
             editProducto(producto.ID_producto, categoriaId);
         });
@@ -85,7 +85,7 @@ function displayProductos(productos) {
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Eliminar';
         deleteButton.classList.add('bg-red-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-red-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-red-500');
-        deleteButton.style.display = isAdmin ? 'inline-block' : 'none';  // Mostrar solo si es administrador
+        deleteButton.style.display = isAdmin ? 'inline-block' : 'none';
         deleteButton.addEventListener('click', () => {
             confirmDeleteProducto(producto.ID_producto);
         });
@@ -93,15 +93,9 @@ function displayProductos(productos) {
         const addToCartButton = document.createElement('button');
         addToCartButton.textContent = 'Agregar al Carrito';
         addToCartButton.classList.add('bg-green-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-green-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-green-500');
-        addToCartButton.style.display = isAdmin ? 'none' : 'inline-block';  // Mostrar solo si no es administrador
+        addToCartButton.style.display = isAdmin ? 'none' : 'inline-block';
         addToCartButton.addEventListener('click', () => {
-            // Lógica para agregar al carrito
-            Swal.fire({
-                icon: 'info',
-                title: 'Agregar al Carrito',
-                text: 'Esta funcionalidad no está implementada aún.',
-                confirmButtonText: 'Aceptar'
-            });
+            agregarProductoAlCarrito(producto.ID_producto);
         });
 
         productCard.appendChild(img);
@@ -130,8 +124,42 @@ function filterProductos() {
     displayProductos(filteredProductos);
 }
 
+async function agregarProductoAlCarrito(idProducto) {
+    try {
+        const response = await fetch('http://refactorizar_proyecto.test/businessLogic/swCarrito.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                idProducto: idProducto,
+                cantidad: 1 // Cantidad predeterminada para agregar al carrito
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Añadido',
+                text: 'Producto añadido al carrito',
+                confirmButtonText: 'Aceptar'
+            });
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        console.error('Error al agregar producto al carrito:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un error al agregar el producto al carrito.',
+            confirmButtonText: 'Aceptar'
+        });
+    }
+}
+
 function editProducto(id, categoriaId) {
-    // Lógica para editar el producto
     Swal.fire({
         icon: 'info',
         title: 'Editar Producto',

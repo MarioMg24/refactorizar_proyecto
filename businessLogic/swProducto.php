@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $uploadedFile = $uploadDirectory . basename($imagenProducto['name']);
 
     if (move_uploaded_file($imagenProducto['tmp_name'], $uploadedFile)) {
-        $rutaImagen = './img_productos/' . basename($imagenProducto['name']);
+        $rutaImagen = '../productos/img_productos/' . basename($imagenProducto['name']);
 
         // Crear objeto de conexión y objeto de producto
         $objConexion = new ConexionDB();
@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
                 $uploadedFile = $uploadDirectory . $data['imagen']['filename'];
 
                 if (file_put_contents($uploadedFile, $data['imagen']['content'])) {
-                    $rutaImagen = './img_productos/' . $data['imagen']['filename'];
+                    $rutaImagen = '../productos/img_productos/' . $data['imagen']['filename'];
                     $objProducto->setImagenProducto($rutaImagen);
                 } else {
                     $response = array('success' => false, 'message' => 'Error al subir la nueva imagen');
