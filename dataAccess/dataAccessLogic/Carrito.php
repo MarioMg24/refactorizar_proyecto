@@ -117,5 +117,18 @@ class Carrito {
             return false;
         }
     }
+
+    
+    public function vaciarCarrito($idCarrito) {
+        try {
+            $sql = "DELETE FROM DetalleCarrito WHERE ID_carrito = ?";
+            $stmt = $this->connectionDB->prepare($sql);
+            $stmt->execute(array($idCarrito));
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+            return false;
+        }
+    }
 }
 ?>

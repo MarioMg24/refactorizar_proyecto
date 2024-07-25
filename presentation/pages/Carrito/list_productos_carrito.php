@@ -20,13 +20,31 @@ $user = $_SESSION['user'];
   <?php include('../../components/header.php');?>
   <main class="container mx-auto mt-8">
     <h2 class="text-2xl font-bold mb-4 text-gray-800">Carrito de Compras</h2>
-    <div id="carrito-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <!-- Los productos del carrito se cargarán aquí dinámicamente -->
-    </div>
-    <div class="mt-4">
-      <button id="checkout-button" class="bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        Proceder al Pago
-      </button>
+    <div class="flex flex-col lg:flex-row">
+      <div id="carrito-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
+        <!-- Los productos del carrito se cargarán aquí dinámicamente -->
+      </div>
+      <div id="total-container" class="bg-white shadow-md rounded-lg p-6 ml-0 lg:ml-4 mt-4 lg:mt-0 lg:w-1/4 h-64 overflow-auto">
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Total del Carrito</h3>
+        <table class="w-full bg-white border rounded-lg shadow-md">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="py-2 px-4 text-left">Descripción</th>
+              <th class="py-2 px-4 text-right">Monto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-t">
+              <td class="py-2 px-4 text-left">Subtotal</td>
+              <td class="py-2 px-4 text-right" id="subtotal-amount">$0.00</td>
+            </tr>
+            <tr class="border-t bg-gray-100">
+              <td class="py-2 px-4 text-left font-bold">Total</td>
+              <td class="py-2 px-4 text-right font-bold" id="total-amount">$0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
   <footer class="bg-blue-800 p-4 text-center text-white">

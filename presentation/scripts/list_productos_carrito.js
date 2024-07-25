@@ -1,6 +1,6 @@
-// list_productos_carrito.js
 document.addEventListener('DOMContentLoaded', () => {
     loadCarrito();
+    setupOrderButton();
 });
 
 async function loadCarrito() {
@@ -26,6 +26,7 @@ async function loadCarrito() {
 function displayCarrito(productos) {
     const carritoContainer = document.getElementById('carrito-container');
     carritoContainer.innerHTML = '';
+    let subtotalAmount = 0;
 
     productos.forEach(producto => {
         const productCard = document.createElement('div');
@@ -75,7 +76,13 @@ function displayCarrito(productos) {
         productCard.appendChild(removeButton);
 
         carritoContainer.appendChild(productCard);
+
+        subtotalAmount += producto.Precio * producto.Cantidad;
     });
+
+    const totalAmount = subtotalAmount; // Modify this line if you have other charges (e.g., tax, shipping)
+    document.getElementById('subtotal-amount').textContent = `$${subtotalAmount.toFixed(2)}`;
+    document.getElementById('total-amount').textContent = `$${totalAmount.toFixed(2)}`;
 }
 
 function showQuantityChangeModal(idProducto, cantidadActual) {
@@ -159,6 +166,55 @@ async function quitarProductoDelCarrito(idProducto) {
             icon: 'error',
             title: 'Error',
             text: 'Hubo un error al eliminar el producto del carrito.',
+            confirmButtonText: 'Aceptar'
+        });
+    }
+}
+
+function setupOrderButton() {
+    const orderButton = document.createElement('button');
+    orderButton.textContent = 'Realizar Pedido';
+    orderButton.classList.add('bg-green-500', 'text-white', 'px-4', 'py-2', 'rounded-md', 'shadow-sm', 'hover:bg-green-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2', 'focus:ring-green-500', 'mt-4');
+    orderButton.addEventListener('click', realizarPedido);
+    
+    const totalContainer = document.getElementById('total-container');
+    totalContainer.appendChild(orderButton);
+}
+
+async function realizarPedido() {
+    try {
+        const totalAmount = parseFloat(document.getElementById('total-amount').textContent.replace('$', ''));
+        
+        const response = await fetch('http://refactorizar_proyecto.test/businessLogic/swPedido.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'realizarPedido',
+                totalAmount: totalAmount
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Pedido Realizado',
+                text: `Su pedido ha sido realizado con éxito. Número de pedido: ${result.idPedido}`,
+                confirmButtonText: 'Aceptar'
+            }).then(() => {
+                loadCarrito(); // Recargar el carrito (que ahora estará vacío)
+            });
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        console.error('Error al realizar el pedido:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un error al realizar el pedido. Por favor, inténtelo de nuevo.',
             confirmButtonText: 'Aceptar'
         });
     }
