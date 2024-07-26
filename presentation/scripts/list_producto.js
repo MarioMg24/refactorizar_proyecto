@@ -1,4 +1,3 @@
-// list_producto.js
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const categoriaId = urlParams.get('idcategoria');
@@ -116,10 +115,26 @@ function filterProductos() {
     const searchInput = document.getElementById('search-input').value.toLowerCase();
     const searchCombo = document.getElementById('search-combo').value;
 
-    const filteredProductos = productosGlobal.filter(producto => {
-        const searchValue = producto[searchCombo].toString().toLowerCase();
-        return searchValue.includes(searchInput);
-    });
+    let filteredProductos = productosGlobal;
+
+    if (searchCombo === 'name-description') {
+        filteredProductos = productosGlobal.filter(producto =>
+            producto.Nombre_producto.toLowerCase().includes(searchInput) ||
+            producto.Descripcion.toLowerCase().includes(searchInput)
+        );
+    } else if (searchCombo === 'price') {
+        filteredProductos = productosGlobal.filter(producto =>
+            producto.Precio.toString().includes(searchInput)
+        );
+    } else if (searchCombo === 'stock') {
+        filteredProductos = productosGlobal.filter(producto =>
+            producto.Cantidad_disponible.toString().includes(searchInput)
+        );
+    } else if (searchCombo === 'expiration') {
+        filteredProductos = productosGlobal.filter(producto =>
+            producto.Fecha_caducidad && producto.Fecha_caducidad.toLowerCase().includes(searchInput)
+        );
+    }
 
     displayProductos(filteredProductos);
 }
