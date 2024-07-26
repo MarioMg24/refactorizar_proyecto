@@ -80,7 +80,7 @@ function displayCarrito(productos) {
         subtotalAmount += producto.Precio * producto.Cantidad;
     });
 
-    const totalAmount = subtotalAmount; // Modify this line if you have other charges (e.g., tax, shipping)
+    const totalAmount = subtotalAmount; // Add other charges if necessary
     document.getElementById('subtotal-amount').textContent = `$${subtotalAmount.toFixed(2)}`;
     document.getElementById('total-amount').textContent = `$${totalAmount.toFixed(2)}`;
 }
@@ -184,7 +184,8 @@ function setupOrderButton() {
 async function realizarPedido() {
     try {
         const totalAmount = parseFloat(document.getElementById('total-amount').textContent.replace('$', ''));
-        
+        const productos = await fetchCarritoProductos();
+
         const response = await fetch('http://refactorizar_proyecto.test/businessLogic/swPedido.php', {
             method: 'POST',
             headers: {
@@ -192,7 +193,8 @@ async function realizarPedido() {
             },
             body: JSON.stringify({
                 action: 'realizarPedido',
-                totalAmount: totalAmount
+                totalAmount: totalAmount,
+                productos: productos
             })
         });
 
@@ -217,5 +219,24 @@ async function realizarPedido() {
             text: 'Hubo un error al realizar el pedido. Por favor, inténtelo de nuevo.',
             confirmButtonText: 'Aceptar'
         });
+    }
+}
+
+async function fetchCarritoProductos() {
+    try {
+        const response = await fetch('http://refactorizar_proyecto.test/businessLogic/swCarrito.php');
+        if (!response.ok) {
+            throw new Error('Error al obtener los productos del carrito');
+        }
+
+        const productos = await response.json();
+        return productos.map(producto => ({
+            idProducto: producto.ID_producto,
+            cantidad: producto.Cantidad,
+            precio: producto.Precio
+        }));
+    } catch (error) {
+        console.error('Error al obtener los productos del carrito:', error);
+        return [];
     }
 }

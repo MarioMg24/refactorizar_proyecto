@@ -32,9 +32,13 @@ class Carrito {
                     WHERE dc.ID_carrito = ?";
             $stmt = $this->connectionDB->prepare($sql);
             $stmt->execute(array($this->getIdCarrito()));
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (empty($resultados)) {
+                error_log("No se encontraron productos en el carrito ID: " . $this->getIdCarrito());
+            }
+            return $resultados;
         } catch (PDOException $e) {
-            echo $e->getMessage();
+            error_log("Error al obtener productos del carrito: " . $e->getMessage());
             return [];
         }
     }
@@ -130,5 +134,6 @@ class Carrito {
             return false;
         }
     }
+    
 }
 ?>

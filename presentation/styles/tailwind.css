@@ -1424,14 +1424,6 @@ select {
 }
 
 @media (min-width: 1024px) {
-  .lg\:sticky {
-    position: sticky;
-  }
-
-  .lg\:top-8 {
-    top: 2rem;
-  }
-
   .lg\:ml-4 {
     margin-left: 1rem;
   }

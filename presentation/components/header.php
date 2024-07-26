@@ -19,6 +19,7 @@ $user = $_SESSION['user'];
           </a>
         </li>
         <li><a href="../carrito/list_productos_carrito.php" class="text-white hover:text-gray-300">Carrito</a></li>
+        <li><a href="../Pedido/list_Pedido.php" class="text-white hover:text-gray-300">Pedidos</a></li>
         <li><a href="../sesiones/logout.php" class="text-white hover:text-gray-300">Cerrar sesión</a></li>
       </ul>
     </nav>

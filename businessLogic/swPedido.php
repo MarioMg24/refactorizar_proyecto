@@ -22,6 +22,7 @@ if (!isset($_SESSION['user']) || !isset($_SESSION['user']['ID_usuario'])) {
 }
 
 $idUsuario = $_SESSION['user']['ID_usuario'];
+$isAdmin = isset($_SESSION['user']['Perfil']) && $_SESSION['user']['Perfil'] === 'Administrador';
 $objConexion = new ConexionDB();
 $objPedido = new Pedido($objConexion);
 $objCarrito = new Carrito($objConexion);
@@ -29,35 +30,72 @@ $objCarrito->setIdUsuario($idUsuario);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
-    if (isset($data['action']) && $data['action'] === 'realizarPedido') {
-        $idCarritoData = $objCarrito->obtenerIdCarritoPorUsuario();
-        $idCarrito = $idCarritoData['ID_carrito'] ?? null;
-        
-        if (!$idCarrito) {
-            sendError('No se encontró un carrito para este usuario.');
+    if (isset($data['action'])) {
+        switch ($data['action']) {
+            case 'realizarPedido':
+                $productos = $data['productos'] ?? [];
+                $totalAmount = $data['totalAmount'] ?? 0;
+
+                if (empty($productos) || $totalAmount <= 0) {
+                    sendError('Datos del pedido no válidos.');
+                }
+
+                $objPedido->setIdUsuario($idUsuario);
+                $objPedido->setTotal($totalAmount);
+                $objPedido->setEstado('Pendiente');
+
+                $idPedido = $objPedido->crearPedido();
+                if (!$idPedido) {
+                    sendError('Error al crear el pedido.');
+                }
+
+                foreach ($productos as $producto) {
+                    $idProducto = $producto['idProducto'];
+                    $cantidad = $producto['cantidad'];
+                    $precio = $producto['precio'];
+
+                    $objPedido->agregarDetallePedido($idProducto, $cantidad, $precio);
+                }
+
+                $idCarritoData = $objCarrito->obtenerIdCarritoPorUsuario();
+                $idCarrito = $idCarritoData['ID_carrito'] ?? null;
+
+                if ($idCarrito) {
+                    $objCarrito->vaciarCarrito($idCarrito);
+                }
+
+                sendResponse(array('success' => true, 'message' => 'Pedido realizado con éxito', 'idPedido' => $idPedido));
+                break;
+
+            case 'cancelarPedido':
+                $idPedido = $data['idPedido'] ?? null;
+                if ($idPedido) {
+                    $success = $objPedido->cancelarPedido($idPedido);
+                    if ($success) {
+                        sendResponse(array('success' => true, 'message' => 'Pedido cancelado con éxito'));
+                    } else {
+                        sendError('Error al cancelar el pedido.');
+                    }
+                } else {
+                    sendError('ID de pedido no válido.');
+                }
+                break;
+
+            default:
+                sendError('Acción no válida.');
+                break;
         }
-
-        $totalAmount = isset($data['totalAmount']) ? floatval($data['totalAmount']) : 0;
-
-        if ($totalAmount <= 0) {
-            sendError('El total del pedido no es válido.');
-        }
-
-        $idPedido = $objPedido->crearPedido($idUsuario, $totalAmount);
-        if (!$idPedido) {
-            sendError('Error al crear el pedido.');
-        }
-
-        $productosCarrito = $objCarrito->obtenerProductosEnCarrito();
-        foreach ($productosCarrito as $producto) {
-            $objPedido->agregarDetallePedido($idPedido, $producto['ID_producto'], $producto['Cantidad'], $producto['Precio']);
-        }
-
-        $objCarrito->vaciarCarrito($idCarrito);
-
-        sendResponse(array('success' => true, 'message' => 'Pedido realizado con éxito', 'idPedido' => $idPedido));
+    } else {
+        sendError('Acción no especificada.');
     }
+} elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
+    if ($isAdmin) {
+        $pedidos = $objPedido->obtenerTodosLosPedidos();
+    } else {
+        $pedidos = $objPedido->obtenerPedidosPorUsuario($idUsuario);
+    }
+    sendResponse($pedidos);
+} else {
+    sendError('Método HTTP no permitido.');
 }
-
-sendError('Método HTTP no permitido o acción no reconocida.');
 ?>
